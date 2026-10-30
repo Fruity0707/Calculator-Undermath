@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNDERMATH — Sans' Calculator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+Thai:wght@400;500;700&display=swap');
+
+        :root {
+            --bg: #08090f;
+            --panel: #11131d;
+            --panel2: #191c29;
+            --line: #45495d;
+            --white: #f4f4f4;
+            --muted: #a4a8b8;
+            --cyan: #55d9ff;
+            --gold: #ffe36e;
+            --red: #ff646e
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            min-height: 100vh;
+            background: #000;
+            color: var(--white);
+            font-family: 'Noto Sans Thai', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 28px 16px;
+            overflow-x: hidden
+        }
+
+        body:before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: .08;
+            background-image: radial-gradient(#777 0.6px, transparent 0.6px);
+            background-size: 5px 5px
+        }
+
+        .shell {
+            width: min(1050px, 100%);
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: 20px;
+            position: relative;
+            z-index: 1
+        }
+
+        .calculator-card,
+        .sans-panel {
+            background: #000;
+            border: 4px solid var(--white);
+            box-shadow: none;
+            border-radius: 0
+        }
+
+        .calculator-card {
+            padding: 26px
+        }
+
+        h1 {
+            font: 16px 'Press Start 2P', monospace;
+            color: var(--gold);
+            line-height: 1.8;
+            margin-bottom: 8px
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 22px
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #080a11;
+            border: 2px solid var(--line);
+            padding: 10px;
+            margin-bottom: 12px
+        }
+
+        .input-row:focus-within {
+            border-color: var(--cyan)
+        }
+
+        .input-row label {
+            font-weight: 700;
+            white-space: nowrap
+        }
+
+        input {
+            min-width: 0;
+            flex: 1;
+            background: transparent;
+            border: 0;
+            outline: 0;
+            color: white;
+            font-size: 18px
+        }
+
+        button {
+            font-family: 'Noto Sans Thai', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid var(--white);
+            background: #252a3b;
+            color: white;
+            padding: 10px 14px;
+            transition: .12s;
+            box-shadow: 3px 3px 0 #000
+        }
+
+        button:hover {
+            transform: translate(-1px, -1px);
+            filter: brightness(1.2)
+        }
+
+        button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0 0 0 #000
+        }
+
+        .calc-btn {
+            background: #315b85;
+            border-color: var(--cyan)
+        }
+
+        .ac-btn {
+            background: #742e3b;
+            border-color: #ff7a86
+        }
+
+        .button-row {
+            display: flex;
+            gap: 9px;
+            margin-bottom: 14px
+        }
+
+        .output-row {
+            min-height: 80px;
+            border: 2px solid #565d78;
+            background: #080a11;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .rendered-math {
+            font-size: 20px;
+            color: var(--cyan);
+            overflow-wrap: anywhere
+        }
+
+        .result-value {
+            font: 16px 'Press Start 2P', monospace;
+            color: var(--gold);
+            overflow-wrap: anywhere
+        }
+
+        details {
+            border: 2px solid var(--line);
+            margin-top: 14px;
+            background: #0b0d15
+        }
+
+        summary {
+            cursor: pointer;
+            padding: 13px 15px;
+            color: var(--gold);
+            font-weight: 700;
+            background: #191c29
+        }
+
+        .accordion-content {
+            padding: 14px;
+            line-height: 1.9;
+            color: #d8d9e0;
+            font-size: 14px;
+            border-top: 1px solid var(--line)
+        }
+
+        code {
+            color: var(--cyan);
+            background: #24283a;
+            padding: 2px 5px
+        }
+
+        .clear-btn {
+            float: right;
+            color: #ff9aa1;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            padding: 0;
+            text-decoration: underline
+        }
+
+        .history-list {
+            list-style: none;
+            display: grid;
+            gap: 8px;
+            max-height: 180px;
+            overflow: auto
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 9px;
+            background: #1a1e2b;
+            border: 1px solid #45495d;
+            cursor: pointer
+        }
+
+        .history-item:hover {
+            border-color: var(--cyan)
+        }
+
+        .sans-panel {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 490px;
+            background: #000;
+            border-color: #fff
+        }
+
+        .panel-label {
+            font: 9px 'Press Start 2P';
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.8
+        }
+
+        .sans-wrap {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 260px;
+            overflow: hidden
+        }
+
+        /* Official in-game Sans sprite sheet: The Spriters Resource. Rendered as pixel art, never redrawn. */
+        .sans-sprite {
+            display: block;
+            width: 236px;
+            height: 302px;
+            max-width: 100%;
+            object-fit: contain;
+            flex: 0 1 auto;
+            image-rendering: pixelated;
+            filter: drop-shadow(0 3px 0 #222);
+            animation: idle 3.2s steps(2, end) infinite
+        }
+
+        @keyframes idle {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-3px)
+            }
+        }
+
+        .dialog {
+            width: 100%;
+            min-height: 112px;
+            border: 4px solid white;
+            background: #000;
+            padding: 13px 14px;
+            position: relative;
+            line-height: 1.7;
+            font-size: 14px;
+            box-shadow: inset 0 0 0 2px #000
+        }
+
+        .dialog:before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: 28px;
+            width: 14px;
+            height: 14px;
+            background: #05060a;
+            border-left: 3px solid white;
+            border-top: 3px solid white;
+            transform: rotate(45deg)
+        }
+
+        .speaker {
+            font: 9px 'Press Start 2P';
+            color: var(--gold);
+            margin-bottom: 9px
+        }
+
+        #sansMessage {
+            color: #f5f5f5
+        }
+
+        #sansMessage .blue {
+            color: var(--cyan)
+        }
+
+        #sansMessage .yellow {
+            color: var(--gold)
+        }
+
+        .sans-panel .hint {
+            font-size: 11px;
+            color: #888da0;
+            text-align: center;
+            margin-top: 10px
+        }
+
+        @media(max-width:760px) {
+            .shell {
+                grid-template-columns: 1fr
+            }
+
+            .sans-panel {
+                min-height: 420px;
+                order: -1
+            }
+
+            .sans-wrap {
+                min-height: 205px
+            }
+
+            .sans {
+                width: 175px
+            }
+
+            h1 {
+                font-size: 12px
+            }
+
+            .calculator-card {
+                padding: 18px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="shell">
+        <main class="calculator-card">
+            <h1>UNDERMATH</h1>
+            <p class="subtitle">a little math adventure with sans.</p>
+            <div class="input-row">
+                <label for="expression">โจทย์ :</label>
+                <input id="expression" type="text" autocomplete="off">
+            </div>
+            <div class="button-row">
+                <button class="calc-btn" onclick="calculate()">คำนวณ</button>
+                <button class="ac-btn" onclick="clearAll()">AC</button>
+            </div>
+            <div class="output-row">
+                <div class="rendered-math" id="renderedMath">แสดงโจทย์ที่นี่...</div>
+                <div class="result-value" id="resultValue">= ?</div>
+            </div>
+            <details>
+                <summary>▸ คู่มือการพิมพ์สัญลักษณ์</summary>
+                <div class="accordion-content">
+                    • <b>ถอดราก:</b> <code>root(16)</code> หรือ <code>root(27,3)</code><br>
+                    • <b>เศษส่วน:</b> พิมพ์ <code>(1+2)/3</code><br>
+                    • <b>ค่าพาย:</b> พิมพ์ <code>pi</code><br>
+                    • <b>ตรีโกณมิติ:</b> <code>sin(30)</code>, <code>cos(60)</code>, <code>tan(45)</code>
+                    (หน่วยองศา)<br>
+                    • <b>ยกกำลัง:</b> พิมพ์ <code>2^3</code>
+                </div>
+            </details>
+            <details>
+                <summary>▸ ประวัติการคำนวณ <button class="clear-btn"
+                        onclick="event.stopPropagation();clearHistory()">ล้างประวัติ</button></summary>
+                <div class="accordion-content">
+                    <ul class="history-list" id="historyList">
+                        <li>ยังไม่มีประวัติการคำนวณ</li>
+                    </ul>
+                </div>
+            </details>
+        </main>
+        <aside class="sans-panel">
+            <div class="panel-label">THE SKELETON WHO LOVES SHORTCUTS</div>
+            <div class="sans-wrap">
+                <img class="sans-sprite" id="sansSprite"
+                    src="https://undertale.wiki/w/Special:FilePath/Sans_battle_idle.gif"
+                    alt="Sans battle idle sprite from Undertale"
+                    onerror="this.onerror=null;this.src='https://undertale.fandom.com/wiki/Special:FilePath/Sans_battle_idle.gif';">
+            </div>
+            <div class="dialog">
+                <div class="speaker">SANS</div>
+                <div id="sansMessage">heya. welcome to the underground...<br>เอาล่ะ ลองคำนวณดูสิ</div>
+            </div>
+            <div class="hint">battle sprite: Undertale Wiki</div>
+        </aside>
+    </div>
+    <script>
+        const input = document.getElementById('expression');
+        const rendered = document.getElementById('renderedMath');
+        const result = document.getElementById('resultValue');
+        let historyData = [];
+        function talk(message, emotion = 'normal') {
+            document.getElementById('sansMessage').innerHTML = message;
+            // ใช้ Sans battle idle GIF จากเกมจริง ไม่ครอปพิกัดจาก sprite sheet ผิดไฟล์
+            const sprite = document.getElementById('sansSprite');
+            sprite.alt = 'Sans battle sprite — ' + emotion;
+        }
+
+        function formatPreview(s) { return s.replace(/\bpi\b/gi, 'π').replace(/\b(root|sqrt)\(/gi, '√(').replace(/\*/g, ' × ').replace(/\^/g, '^'); }
+        input.addEventListener('input', () => { rendered.textContent = input.value ? formatPreview(input.value) : 'แสดงโจทย์ที่นี่...'; if (input.value) talk('typing away, huh? take your time.', 'normal'); });
+        function evaluateExpression(raw) {
+            let s = raw.toLowerCase().replace(/\s+/g, '').replace(/\bpi\b/g, 'PI');
+            // Convert supported functions to Math functions; trig uses degrees.
+            s = s.replace(/\bsin\(/g, 'SIN(').replace(/\bcos\(/g, 'COS(').replace(/\btan\(/g, 'TAN(');
+            s = s.replace(/\broot\(([^,()]+),([^()]+)\)/g, 'ROOT($1,$2)').replace(/\b(root|sqrt)\(/g, 'SQRT(');
+            s = s.replace(/\b(sin|cos|tan)\(([^()]*)\)/g, (_, fn, x) => ({ sin: `SIN(${x})`, cos: `COS(${x})`, tan: `TAN(${x})` })[fn]);
+            s = s.replace(/\^/g, '**');
+            s = s.replace(/\bPI\b/g, 'Math.PI');
+            s = s.replace(/\bSIN\(([^()]*)\)/g, 'Math.sin(($1)*Math.PI/180)')
+                .replace(/\bCOS\(([^()]*)\)/g, 'Math.cos(($1)*Math.PI/180)')
+                .replace(/\bTAN\(([^()]*)\)/g, 'Math.tan(($1)*Math.PI/180)')
+                .replace(/\bSQRT\(([^()]*)\)/g, 'Math.sqrt($1)')
+                .replace(/\bROOT\(([^,()]+),([^()]+)\)/g, 'Math.pow($1,1/($2))');
+            // Permit only arithmetic, decimal numbers, parentheses and Math.PI / Math functions.
+            if (!/^[0-9+\-*/().,\sA-Za-z]*$/.test(s) || /(?:constructor|window|document|alert|eval)/i.test(s)) throw Error('invalid');
+            const value = Function('"use strict";return (' + s + ')')();
+            if (typeof value !== 'number' || !Number.isFinite(value)) throw Error('invalid');
+            return Number.isInteger(value) ? value : Number(value.toFixed(6));
+        }
+        function calculate() {
+            const expr = input.value.trim();
+            if (!expr) { talk('you gotta give me something to work with, pal.', 'laugh'); return; }
+            try {
+                const answer = evaluateExpression(expr);
+                result.textContent = '= ' + answer;
+                historyData.unshift({ expr, res: answer }); renderHistory();
+                talk('heh. <span class="blue">' + answer + '</span>.<br>not bad. math looks good on you.', 'calc');
+            } catch (e) { result.textContent = '= ERROR'; talk('welp. that equation broke reality.<br>check the syntax and try again.', 'surprise'); }
+        }
+        function clearAll() {
+            input.value = ''; rendered.textContent = 'แสดงโจทย์ที่นี่...'; result.textContent = '= ?';
+            talk('all cleared. a fresh start.<br>even the timeline gets a reset.', 'laugh'); input.focus();
+        }
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if (!historyData.length) { list.innerHTML = '<li>ยังไม่มีประวัติการคำนวณ</li>'; return; }
+            list.innerHTML = '';
+            historyData.forEach(item => {
+                const li = document.createElement('li'); li.className = 'history-item';
+                const a = document.createElement('span'); a.textContent = item.expr;
+                const b = document.createElement('b'); b.textContent = '= ' + item.res;
+                li.append(a, b); li.addEventListener('click', () => { input.value = item.expr; rendered.textContent = formatPreview(item.expr); calculate(); talk('back for another round? nice.', 'normal'); });
+                list.appendChild(li);
+            });
+        }
+        function clearHistory() { historyData = []; renderHistory(); talk('history wiped. i saw nothing.', 'history'); }
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+    </script>
+</body>
+
+</html>
